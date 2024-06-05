@@ -83,7 +83,7 @@ contract ContentNFT is ERC721Upgradeable {
     /// @notice Function to mint a new NFT token
     /// @param _nftURI URI of the NFT token
     /// @return tokenNumber
-    function mint(string memory _nftURI) external payable returns (uint256) {
+    function mint(string memory _nftURI) external  returns (uint256) {
         require(IFactory(factory).isCreatorGroup(msg.sender) == true, "Invalid Minter");
         // Mint the NFT token
         if (mintFee != 0) {
@@ -107,7 +107,7 @@ contract ContentNFT is ERC721Upgradeable {
     /// @notice Function to burn an NFT token
     /// @param _tokenId Token ID of the NFT token
     /// @return Burned tokenId
-    function burn(uint256 _tokenId) external payable returns (uint256) {
+    function burn(uint256 _tokenId) external returns (uint256) {
         require(msg.sender == ownerOf(_tokenId), "only owner can burn");
         // Burn the NFT token
         if (burnFee != 0) {

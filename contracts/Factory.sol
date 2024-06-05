@@ -61,7 +61,7 @@ contract Factory {
         uint256 _mintFee,
         uint256 _burnFee,
         address _USDC
-    ) payable {
+    )  {
         owner = msg.sender;
         require(_marketplace!= address(0), "Address cannot be 0");
         marketplace = _marketplace;

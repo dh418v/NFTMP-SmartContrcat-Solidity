@@ -15,7 +15,7 @@ async function main() {
     console.log(`USDC contract is deployed. Token address: ${instanceUSDC.target}`)
 
     const USDC_Address = await instanceUSDC.getAddress();
-    const developmentTeam: string = "0x9319Ec01DcB2086dc828C9A23Fa32DFb2FE10143";
+    const developmentTeam: string = "0x6056b0a5Bc0bcC3Fc53077C2e88d0430b8C36d53";
     const Marketplace = await ethers.deployContract('Marketplace', [developmentTeam, percentForSeller, USDC_Address]);
     await Marketplace.waitForDeployment()
     const Marketplace_Address = await Marketplace.getAddress();
