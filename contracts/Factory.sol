@@ -14,12 +14,14 @@ contract Factory {
     address public marketplace; // Address of the marketplace contract
     uint256 public numberOfCreators; // Number of creators associated with the contract
     address[] public Creators; // Array to store addresses of creators
+    mapping(address => bool) isCreatorGroupAddress; // Mapping to check if the address is a creator group
     address public implementGroup; // Address of the implementation contract for creating groups
     address public implementContent; // Address of the implementation contract for creating content
     uint256 public mintFee; // Fee required for minting NFTs
     uint256 public burnFee; // Fee required for burning NFTs
     address public USDC; // Address of the USDC token contract
     IERC20 public immutable USDC_token; // USDC token contract
+
     // Events
     event GroupCreated(
         address indexed creator,
@@ -36,13 +38,7 @@ contract Factory {
         _;
     }
     modifier onlyGroup() {
-        bool flg = false;
-        for(uint256 i = 0; i < numberOfCreators; ++i) {
-            if (msg.sender == Creators[i]) {
-                flg = true; break;
-            }
-        }
-        require(flg == true, "Only group can call this function");
+        require(isCreatorGroupAddress[msg.sender] == true, "Only group can call this function");
         _;
     }
     /// @notice Constructor to initialize contract variables
@@ -104,6 +100,7 @@ contract Factory {
             USDC
         );
         Creators.push(newDeployedAddress);
+        isCreatorGroupAddress[newDeployedAddress] = true;
         numberOfCreators = Creators.length;
         emit GroupCreated(msg.sender, _name, _description, newDeployedAddress);
     }
@@ -170,13 +167,7 @@ contract Factory {
     /// @param _groupAddress The group address
     /// @return The bool value if it is a creator group -> true, or not -> false
     function isCreatorGroup(address _groupAddress) external view returns(bool){
-        bool flg = false;
-        for(uint256 i = 0; i < numberOfCreators; ++i) {
-            if (_groupAddress == Creators[i]) {
-                flg = true; break;
-            }
-        }
-        return flg;
+        return isCreatorGroupAddress[_groupAddress];
     }
 
     /// @notice Function to get the address of a creator group at a specific index
