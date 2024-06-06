@@ -37,10 +37,6 @@ contract Factory {
         require(msg.sender == owner, "Only owner can call this function");
         _;
     }
-    modifier onlyGroup() {
-        require(isCreatorGroupAddress[msg.sender] == true, "Only group can call this function");
-        _;
-    }
     /// @notice Constructor to initialize contract variables
     /// @param _implementGroup Address of the implementation contract for creating groups
     /// @param _implementContent Context of the implementation contract for NFT Collection
