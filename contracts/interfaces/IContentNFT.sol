@@ -10,13 +10,11 @@ interface IContentNFT {
     function owner() external view returns (address);
     function ownerOf(uint256 tokenId) external view returns (address);
     function factory() external view returns (address);
-    function description() external view returns (string memory);
     function tokenNumber() external view returns (uint256);
     function mintFee() external view returns (uint256);
     function burnFee() external view returns (uint256);
-    function creators(uint256) external view returns (address);
-    function initialize(string memory _name, string memory _symbol, string memory _description, string memory _nftURI,
-        address _target, uint256 _mintFee, uint256 _burnFee, address _USDC, address _marketplace) external;
+    function initialize(string memory _name, string memory _symbol,
+        address _owner, uint256 _mintFee, uint256 _burnFee, address _USDC, address _marketplace) external;
     function mint(string memory _nftURI) external returns (uint256);
     function burn(uint256 tokenId) external returns (uint256);
     function tokenURI(uint256 _tokenId) external view returns (string memory);

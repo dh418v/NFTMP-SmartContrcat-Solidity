@@ -12,7 +12,7 @@ interface ICreatorGroup {
         string memory _name,
         string memory _description,
         address[] memory _members,
-        uint256 _numConfirmationRequired,
+        address _collectionAddress,
         address _marketplace,
         uint256 _mintFee,
         uint256 _burnFee,
@@ -27,14 +27,7 @@ interface ICreatorGroup {
         uint256 price
     ) external;
 
-    function mintNew(
-        string memory _nftURI,
-        string memory _name,
-        string memory _symbol,
-        string memory _description
-    ) external;
-
-    function mint(string memory _nftURI, address _targetNFT) external;
+    function mint(string memory _nftURI) external;
 
     function listToEnglishAuction(
         uint256 id,
@@ -55,32 +48,18 @@ interface ICreatorGroup {
 
     function withdrawFromMarketplace() external;
 
-    function submitDirectorSettingTransaction(address _candidate) external;
-
-    function confirmDirectorSettingTransaction(
-        uint256 index,
-        bool state
-    ) external;
-
-    function executeDirectorSettingTransaction(uint256 index) external;
+    function setNewDirector(address _candidate) external;
 
     function submitOfferingSaleTransaction(
         uint256 _marketId,
-        address _tokenContractAddress,
         uint256 tokenId,
         address _buyer,
         uint256 _price
     ) external;
 
-    function confirmOfferingSaleTransaction(uint256 index, bool state) external;
-
     function executeOfferingSaleTransaction(uint256 index) external;
 
-    function setConfirmationRequiredNumber(uint256 confirmNumber) external;
-
     function getNftOfId(uint256 index) external view returns (uint256);
-
-    function getNftAddress(uint256 index) external view returns (address);
 
     function getSoldNumber() external view returns (uint256);
 
@@ -97,36 +76,9 @@ interface ICreatorGroup {
 
     function addMember(address _newMember) external;
 
-    function removeMember(address _removeMember) external;
+    function leaveGroup() external;
 
     function alarmLoyaltyFeeReceived(uint256 nftId, uint256 price) external;
 
-    function getNumberOfCandidateTransaction() external view returns (uint256);
-
-    function getNumberOfSaleOfferingTransaction()
-        external
-        view
-        returns (uint256);
-
-    function getConfirmNumberOfOfferingSaleTransaction(
-        uint256 index
-    ) external view returns (uint256);
-
-    function getConfirmNumberOfDirectorSettingTransaction(
-        uint256 index
-    ) external view returns (uint256);
-
-    function submitBurnTransaction(uint256 id) external;
-
-    function confirmBurnTransaction(uint256 index, bool state) external;
-
     function executeBurnTransaction(uint256 index) external;
-
-    function getConfirmNumberOfBurnTransaction(
-        uint256 index
-    ) external view returns (uint256);
-
-    function getNumberOfBurnTransaction() external view returns (uint256);
-
-    function uploadMemberNFT(address contractAddress, uint256 tokenId) external;
 }

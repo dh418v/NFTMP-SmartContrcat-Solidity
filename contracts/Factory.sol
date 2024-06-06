@@ -79,21 +79,28 @@ contract Factory {
     /// @param _name The name of the group
     /// @param _description The description of the group
     /// @param _members The members of the group
-    /// @param _numConfirmationRequired The number of confirmations required for execution of a transaction in the group
-
     function createGroup(
         string memory _name,
         string memory _description,
-        address[] memory _members,
-        uint256 _numConfirmationRequired
+        address[] memory _members
     ) external {
         require(_members.length != 0, "At least one owner is required");
         address newDeployedAddress = Clones.clone(implementGroup);
+        address newCollectionAddress = Clones.clone(implementContent);
+        IContentNFT(newCollectionAddress).initialize(
+            _name,
+            _name,
+            newDeployedAddress,
+            mintFee,
+            burnFee,
+            USDC,
+            marketplace
+        );
         ICreatorGroup(newDeployedAddress).initialize(
             _name,
             _description,
             _members,
-            _numConfirmationRequired,
+            newCollectionAddress,
             marketplace,
             mintFee,
             burnFee,
@@ -102,43 +109,9 @@ contract Factory {
         Creators.push(newDeployedAddress);
         isCreatorGroupAddress[newDeployedAddress] = true;
         numberOfCreators = Creators.length;
-        emit GroupCreated(msg.sender, _name, _description, newDeployedAddress);
+        emit GroupCreated(msg.sender, _name, _description, newDeployedAddress);        
     }
 
-    /// @notice Function to mint a new NFT
-    /// @param _nftURI The URI of the NFT
-    /// @param _name The name of the new collection
-    /// @param _symbol The symbol of the new collection
-    /// @param _description The description of the new collection
-    /// @return The address of the new collection
-    function mintNew(
-        string memory _nftURI,
-        string memory _name,
-        string memory _symbol,
-        string memory _description
-    ) external onlyGroup returns (address) {
-        uint256 beforeBalance = USDC_token.balanceOf(address(this));
-        if(mintFee != 0) {
-            SafeERC20.safeTransferFrom(USDC_token, msg.sender, address(this), mintFee);
-        }
-        uint256 afterBalance = USDC_token.balanceOf(address(this));
-        require(afterBalance - beforeBalance >= mintFee, "Not enough funds to pay the mint fee");
-        address newDeployedAddress = Clones.clone(implementContent);
-        IContentNFT(newDeployedAddress).initialize(
-            _name,
-            _symbol,
-            _description,
-            _nftURI,
-            msg.sender,
-            mintFee,
-            burnFee,
-            USDC,
-            marketplace
-        );
-        emit NewNFTMinted(msg.sender, newDeployedAddress);
-        return newDeployedAddress;
-    }
-    
     /// @notice Function for the development team to withdraw funds
     /// @dev Only the development team can call this function
     function withdraw() external {

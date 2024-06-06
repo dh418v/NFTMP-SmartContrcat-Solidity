@@ -1,8 +1,8 @@
 import { ethers } from "hardhat";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
-import creatorGroupABI from "./creatorGroup.json";
-import contentNFTABI from "./contentNFT.json";
+import creatorGroupABI from "./abis/creatorGroup.json";
+import contentNFTABI from "./abis/contentNFT.json";
 let USDC_Address: any;
 let USDC_Contract: any;
 let Marketplace: any;
@@ -68,11 +68,10 @@ const amount: number = 5000;
 let firstNFTAddress: any;
 describe("test creating CreatorGroup contracts and mint & burn NFTs", async function () {
   it("Create first CreatorGroup", async function () {
-    await Factory.createGroup(
+    await Factory.connect(user2).createGroup(
       "Top_Artists",
       "We are all NFT artists",
-      [user2, user1],
-      2
+      [user2, user1]
     );
     group_address = await Factory.getCreatorGroupAddress(0);
     console.log("\tCreatorGroup address\t", group_address);
@@ -105,14 +104,7 @@ describe("test creating CreatorGroup contracts and mint & burn NFTs", async func
   });
 
   it("set Director First", async function () {
-    await creatorGroup.connect(user1).submitDirectorSettingTransaction(user1);
-    await creatorGroup
-      .connect(user1)
-      .confirmDirectorSettingTransaction(0, true);
-    await creatorGroup
-      .connect(user2)
-      .confirmDirectorSettingTransaction(0, true);
-    await creatorGroup.connect(user2).executeDirectorSettingTransaction(0);
+    await creatorGroup.connect(user2).setNewDirector(user1);
     const addresOfDirector = await creatorGroup.director();
     console.log("\taddress of user1\t", await user1.getAddress());
     console.log("\taddress of director\t", addresOfDirector);
@@ -121,15 +113,12 @@ describe("test creating CreatorGroup contracts and mint & burn NFTs", async func
   it("mint First NFT in the CreatorGroup", async function () {
     await creatorGroup
       .connect(user1)
-      .mintNew(
-        "ipfs://firstToken",
-        "Nature",
-        "DDD",
-        "Oh my god, it's beautiful"
+      .mint(
+        "ipfs://firstToken"
       );
     const nftId = await creatorGroup.getNftOfId(0);
     console.log("\tNFT id\t", nftId);
-    firstNFTAddress = await creatorGroup.getNftAddress(0);
+    firstNFTAddress = await creatorGroup.collectionAddress();
     console.log("\tNFT address\t", firstNFTAddress);
   });
 
@@ -143,8 +132,6 @@ describe("test creating CreatorGroup contracts and mint & burn NFTs", async func
     console.log("\tNFT name\t", name);
     const symbol = await nft.symbol();
     console.log("\tNFT symbol\t", symbol);
-    const description = await nft.description();
-    console.log("\tNFT description\t", description);
     const imageURI = await nft.tokenURI(1);
     console.log("\t1 NFT imageURI\t", imageURI);
   });
@@ -152,7 +139,7 @@ describe("test creating CreatorGroup contracts and mint & burn NFTs", async func
   it("mint second NFT to the Nature NFT Collection", async function () {
     await creatorGroup
       .connect(user1)
-      .mint("ipfs://secondToken", firstNFTAddress);
+      .mint("ipfs://secondToken");
   });
 
   it("check nft values in nft contract", async function () {
@@ -168,7 +155,7 @@ describe("test creating CreatorGroup contracts and mint & burn NFTs", async func
   it("mint third NFT to the Nature NFT Collection", async function () {
     await creatorGroup
       .connect(user1)
-      .mint("ipfs://thirdToken", firstNFTAddress);
+      .mint("ipfs://thirdToken");
   });
 
   it("check nft values in nft contract", async function () {
@@ -180,14 +167,6 @@ describe("test creating CreatorGroup contracts and mint & burn NFTs", async func
     const imageURI = await nft.tokenURI(3);
     console.log("\t3 NFT imageURI\t", imageURI);
   });
-
-  // it("burn second NFT to the Nature NFT Collection", async function(){
-  //     const before_numberOfNFT = await creatorGroup.numberOfNFT() ;
-  //     console.log("\tBefore Burn -> NFT number\t", before_numberOfNFT);
-  //     await creatorGroup.connect(user1).burn(1) ;
-  //     const after_numberOfNFT = await creatorGroup.numberOfNFT() ;
-  //     console.log("\tfter Burn -> tNFT number\t", after_numberOfNFT);
-  // })
 
   it("check USDC balance of each addresses", async function () {
     const user1_balance = await USDC_Contract.balanceOf(user1);
@@ -263,8 +242,6 @@ describe("listing SaleOffering & biding & endAuction", async function () {
     await Marketplace.connect(buyer2).makeBidToOfferingSale(0, 1700);
   });
   it("confirm transactions", async function () {
-    await creatorGroup.connect(user1).confirmOfferingSaleTransaction(1, true);
-    await creatorGroup.connect(user2).confirmOfferingSaleTransaction(1, true);
     await creatorGroup.connect(user1).executeOfferingSaleTransaction(1);
   });
   it("withdraw after english Auctin ended", async function () {
@@ -314,7 +291,7 @@ describe("check cancel listing", async function () {
   it("mint fourth NFT to the Nature NFT Collection", async function () {
     await creatorGroup
       .connect(user1)
-      .mint("ipfs://fourthToken", firstNFTAddress);
+      .mint("ipfs://fourthToken");
   });
   it("list to English Auction", async function () {
     await creatorGroup.connect(user1).listToEnglishAuction(3, 200, 300);
@@ -389,7 +366,7 @@ describe("add member to the group processing happen", async function () {
   it("mint fifth nft", async function () {
     await creatorGroup
       .connect(user1)
-      .mint("ipfs://fifthToken", firstNFTAddress);
+      .mint("ipfs://fifthToken");
   });
   it("lits fifth nft to the Dutch Auction", async function () {
     await creatorGroup.connect(user1).listToDutchAuction(4, 1000, 100, 28800);

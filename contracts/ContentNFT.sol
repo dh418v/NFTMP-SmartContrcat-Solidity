@@ -17,7 +17,6 @@ contract ContentNFT is ERC721Upgradeable {
     address public owner; // Address of the contract owner
     address public factory; // Address of the factory contract
     mapping(uint256 => string) private nftURIPath; // Mapping to store NFT URI paths
-    string public description; // Description of the NFT contract
     uint256 public tokenNumber; // Current token number
     uint256 public mintFee; // Fee required for minting
     uint256 public burnFee; // Fee required for burning
@@ -35,13 +34,16 @@ contract ContentNFT is ERC721Upgradeable {
     );
     event Burned(address indexed from, uint256 indexed tokenId);
     event LoyaltyFeeChanged(uint256 indexed tokenId, uint256 indexed newFee);
+    // modifier
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only owner can call this function");
+        _;
+    }
 
     /// @notice Function to initialize the NFT contract
     /// @param _name Name of the NFT contract
     /// @param _symbol Symbol of the NFT contract
-    /// @param _description Description of the NFT contract
-    /// @param _nftURI Path to the first NFT URI
-    /// @param _target Address of the target contract
+    /// @param _owner Address of the target contract
     /// @param _mintFee Fee required for minting
     /// @param _burnFee Fee required for burning
     /// @param _USDC Address of the USDC token contract
@@ -49,9 +51,7 @@ contract ContentNFT is ERC721Upgradeable {
     function initialize(
         string memory _name,
         string memory _symbol,
-        string memory _description,
-        string memory _nftURI,
-        address _target,
+        address _owner,
         uint256 _mintFee,
         uint256 _burnFee,
         address _USDC,
@@ -60,31 +60,22 @@ contract ContentNFT is ERC721Upgradeable {
         // Initialize ERC721 contract
         ERC721Upgradeable.__ERC721_init(_name, _symbol);
         factory = msg.sender;
-        require(_target != address(0), "target address cannot be 0");
-        owner = _target;
-        description = _description;
+        require(_owner != address(0), "owner address cannot be 0");
+        owner = _owner;
         tokenNumber = 1;
-        _mint(owner, tokenNumber);
-        creators[tokenNumber] = owner;
         mintFee = _mintFee;
         burnFee = _burnFee;
-        transferHistory[tokenNumber].push(
-            TransferHistory(address(0), owner, block.timestamp)
-        );
-        _setTokenURI(_nftURI);
         require(_USDC != address(0), "USDC address cannot be 0");
         USDC = _USDC;
         USDC_token = IERC20(_USDC);
         require(_marketplace != address(0), "marketplace address cannot be 0");
         marketplace = _marketplace;
-        emit minted(owner, 0, _nftURI);
     }
 
     /// @notice Function to mint a new NFT token
     /// @param _nftURI URI of the NFT token
     /// @return tokenNumber
-    function mint(string memory _nftURI) external  returns (uint256) {
-        require(IFactory(factory).isCreatorGroup(msg.sender) == true, "Invalid Minter");
+    function mint(string memory _nftURI) external onlyOwner returns (uint256) {
         // Mint the NFT token
         if (mintFee != 0) {
             SafeERC20.safeTransferFrom(
@@ -95,10 +86,6 @@ contract ContentNFT is ERC721Upgradeable {
             );
         }
         _mint(msg.sender, tokenNumber);
-        creators[tokenNumber] = msg.sender;
-        transferHistory[tokenNumber].push(
-            TransferHistory(address(0), msg.sender, block.timestamp)
-        );
         _setTokenURI(_nftURI);
         emit minted(msg.sender, tokenNumber - 1, _nftURI);
         return tokenNumber - 1;
@@ -134,10 +121,7 @@ contract ContentNFT is ERC721Upgradeable {
     /// @param _tokenId Token ID of the NFT token
     /// @param _loyaltyFee Loyalty Fee percentage
     function setLoyaltyFee(uint256 _tokenId, uint256 _loyaltyFee) external {
-        require(
-            msg.sender == marketplace,
-            "Invalid caller."
-        );
+        require(msg.sender == marketplace, "Invalid caller.");
         loyaltyFee[_tokenId] = _loyaltyFee;
         emit LoyaltyFeeChanged(_tokenId, _loyaltyFee);
     }
@@ -152,19 +136,17 @@ contract ContentNFT is ERC721Upgradeable {
         uint256 _tokenId
     ) public override {
         super.transferFrom(_from, _to, _tokenId);
-        if (transferHistory[_tokenId].length >= 2) {
-            ICreatorGroup(creators[_tokenId]).alarmLoyaltyFeeReceived(
+        if (loyaltyFee[_tokenId] != 0 && _from != owner) {
+            SafeERC20.safeTransferFrom(
+                USDC_token,
+                msg.sender,
+                owner,
+                loyaltyFee[_tokenId]
+            );
+            ICreatorGroup(owner).alarmLoyaltyFeeReceived(
                 _tokenId,
                 loyaltyFee[_tokenId]
             );
-            if (loyaltyFee[_tokenId] != 0) {
-                SafeERC20.safeTransferFrom(
-                    USDC_token,
-                    msg.sender,
-                    creators[_tokenId],
-                    loyaltyFee[_tokenId]
-                );
-            }
         }
         transferHistory[_tokenId].push(
             TransferHistory(_from, _to, block.timestamp)

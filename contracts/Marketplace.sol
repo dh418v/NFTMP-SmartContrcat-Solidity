@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 
+
 contract Marketplace is ReentrancyGuard {
     // Enum defining different sale types
     enum SaleType {
@@ -367,7 +368,7 @@ contract Marketplace is ReentrancyGuard {
         uint256 loyaltyFee;
         loyaltyFee = (price * percentForLoyaltyFee) / 100;
         IContentNFT(contractAddress).setLoyaltyFee(nftId, loyaltyFee);
-        if (IContentNFT(contractAddress).creators(nftId) == currentOwner)
+        if (IContentNFT(contractAddress).owner() == currentOwner)
             loyaltyFee = 0;
         if(loyaltyFee != 0) {
             SafeERC20.forceApprove(USDC_token, contractAddress, loyaltyFee);
@@ -429,7 +430,7 @@ contract Marketplace is ReentrancyGuard {
         uint256 loyaltyFee;
         loyaltyFee = (price * percentForLoyaltyFee) / 100;
         IContentNFT(contractAddress).setLoyaltyFee(nftId, loyaltyFee);
-        if (IContentNFT(contractAddress).creators(nftId) == currentOwner)
+        if (IContentNFT(contractAddress).owner() == currentOwner)
             loyaltyFee = 0;
         if(loyaltyFee != 0) {
             SafeERC20.forceApprove(USDC_token, contractAddress, loyaltyFee);
@@ -462,7 +463,6 @@ contract Marketplace is ReentrancyGuard {
         uint256 listedId = offeringSale_listedNumber[_id];
         require(cancelListingState[listedId] == false, "Listing Cancelled.");
         require(listedNFTs[listedId].endState == false, "Already sold out.");
-        address contractAddress = listedNFTs[listedId].nftContractAddress;
         uint256 nftId = listedNFTs[listedId].nftId;
         address currentOwner = listedNFTs[listedId].currentOwner;
         uint256 price = offeringSales[_id].initialPrice;
@@ -477,7 +477,6 @@ contract Marketplace is ReentrancyGuard {
         // call the CreatorGroup's function
         ICreatorGroup(currentOwner).submitOfferingSaleTransaction(
             _id,
-            contractAddress,
             nftId,
             msg.sender,
             _sendingValue
@@ -523,7 +522,7 @@ contract Marketplace is ReentrancyGuard {
         uint256 loyaltyFee;
         loyaltyFee = (price * percentForLoyaltyFee) / 100;
         IContentNFT(contractAddress).setLoyaltyFee(nftId, loyaltyFee);
-        if (IContentNFT(contractAddress).creators(nftId) == msg.sender)
+        if (IContentNFT(contractAddress).owner() == msg.sender)
             loyaltyFee = 0;
         if(loyaltyFee != 0) {
             SafeERC20.forceApprove(USDC_token, contractAddress, loyaltyFee);
