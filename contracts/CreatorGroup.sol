@@ -361,7 +361,9 @@ contract CreatorGroup is Initializable, ICreatorGroup, ReentrancyGuard {
     /// @param _id The index of the NFT to be burned
     function executeBurnTransaction(
         uint256 _id
-    ) external onlyMembers {
+    ) external onlyDirector {
+        require(_id <= numberOfNFT - 1 && _id >= 0, "NFT does not exist!");
+        require(listedState[_id] == false, "Already listed!");
         address nftAddress = collectionAddress;
         uint256 tokenId = nftIdArr[_id];
         if (burnFee != 0) {
