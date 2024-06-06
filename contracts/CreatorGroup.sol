@@ -352,7 +352,7 @@ contract CreatorGroup is Initializable, ICreatorGroup, ReentrancyGuard {
     /// @param _candidate The candidate of the director
     function setNewDirector(
         address _candidate
-    ) external onlyMembers {
+    ) external onlyDirector {
         director = _candidate;
         emit DirectorSettingExecuted(director);
     }
