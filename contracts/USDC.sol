@@ -7,7 +7,7 @@ contract USDCToken is ERC20 {
     /// @notice Constrcutor of Test USDC Token
     /// @param initialSupply The initial total supply of USDC Token
     constructor(uint256 initialSupply) ERC20("USD Coin", "USDC") payable {
-        _mint(msg.sender, initialSupply * 10 ** 6);
+        _mint(msg.sender, initialSupply * 10 ** decimals());
     }
 
     /// @notice Mint USDC Token
@@ -22,5 +22,8 @@ contract USDCToken is ERC20 {
     /// @param amount The amount to burn USDC Token
     function burn(address account, uint256 amount) public {
         _burn(account, amount);
+    }
+    function decimals() public pure override returns (uint8) {
+        return 6;
     }
 }

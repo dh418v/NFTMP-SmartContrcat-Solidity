@@ -2,6 +2,7 @@ import { HardhatUserConfig } from "hardhat/config";
 import "dotenv/config";
 
 import "@nomicfoundation/hardhat-toolbox";
+import "@nomicfoundation/hardhat-chai-matchers";
 
 const infuraKey = process.env.INFURA_API_KEY;
 const privateKey = process.env.PRIVATE_KEY?process.env.PRIVATE_KEY:"";
@@ -24,7 +25,10 @@ const config: HardhatUserConfig = {
     mainnet:{
       url: `https://mainnet.infura.io/v3/${infuraKey}`,
       accounts:[privateKey],
-    }
+    },
+    hardhat: {
+      chainId: 31337,
+    },
   },
   etherscan: {
     apiKey: {

@@ -81,6 +81,7 @@ contract Factory {
         address[] memory _members
     ) external {
         require(_members.length != 0, "At least one owner is required");
+        require(_members[0] == msg.sender, "The first member must be the caller");
         address newDeployedAddress = Clones.clone(implementGroup);
         address newCollectionAddress = Clones.clone(implementContent);
         IContentNFT(newCollectionAddress).initialize(
@@ -126,7 +127,7 @@ contract Factory {
         uint256 _id,
         uint256 _score
     ) external onlyOwner {
-        require(Creators.length > _id, "Invalid creator group");
+        require(Creators.length > _id && _id>= 0, "Invalid creator group");
         require(_score >= 0 && _score <= 100, "Invalid score");
         ICreatorGroup(Creators[_id]).setTeamScore(_score);
         emit TeamScoreChanged(Creators[_id], _score);
