@@ -48,9 +48,11 @@ contract CreatorGroup is Initializable, ICreatorGroup, ReentrancyGuard {
     uint256 public teamScore; // Team score
     uint256 public totalEarning; //Total Earning
     uint256 public numberOfNFT; // Number of NFTs in the group
+    uint256 public numberOfBurnedNFT;
     mapping(uint256 => uint256) public nftIdArr; // Mapping of NFT IDs
     mapping(uint256 => bool) public listedState; // Mapping to track the listing state of NFTs
     mapping(uint256 => bool) public soldOutState; // Mapping to track the sold state of NFTs
+    mapping(uint256 => bool) public burnedState; // Mapping to track the burn state of NFTs
     mapping(address => mapping(uint256 => uint256)) public revenueDistribution; // Mapping for revenue distribution of NFTs
     mapping(address => mapping(uint256 => uint256)) public getNFTId; // Mapping for getting NFT IDs
     transaction_offering[] public transactions_offering; // Array of  offering transaction
@@ -93,7 +95,7 @@ contract CreatorGroup is Initializable, ICreatorGroup, ReentrancyGuard {
     modifier onlyDirector() {
         require(
             msg.sender == director,
-            "Only delegated member can call this function"
+            "Only director can call this function"
         );
         _;
     }
@@ -353,6 +355,7 @@ contract CreatorGroup is Initializable, ICreatorGroup, ReentrancyGuard {
     function setNewDirector(
         address _candidate
     ) external onlyDirector {
+        require(isOwner[_candidate] == true, "Only members can be director!");
         director = _candidate;
         emit DirectorSettingExecuted(director);
     }
@@ -371,11 +374,10 @@ contract CreatorGroup is Initializable, ICreatorGroup, ReentrancyGuard {
         }
         uint256 burnedId = IContentNFT(nftAddress).burn(tokenId);
         require(burnedId == tokenId, "Not match burned ID");
-        nftIdArr[_id] = nftIdArr[numberOfNFT - 1];
-        delete nftIdArr[numberOfNFT - 1];
-        getNFTId[collectionAddress][nftIdArr[_id]] = _id;
         delete getNFTId[nftAddress][tokenId];
-        numberOfNFT--;
+        delete nftIdArr[_id];
+        burnedState[_id] = true;
+        numberOfBurnedNFT++;
         emit NFTBurned(_id);
     }
 

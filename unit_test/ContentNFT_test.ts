@@ -72,6 +72,7 @@ before("USDC, Marketplace, Factory Contracts Deployment", function () {
 let collection_Address: any;
 let collection: any;
 let firstGroupAddress: any;
+let firstGroup: any;
 describe("Create New Collection", async function () {
   it("Create New Group -> New Collection", async function () {
     const firstGroupName = "firstGroup";
@@ -84,7 +85,7 @@ describe("Create New Collection", async function () {
     );
     firstGroupAddress = await Factory.getCreatorGroupAddress(0);
     console.log("\tfirstGroup Address\t", firstGroupAddress);
-    const firstGroup = await ethers.getContractAt(
+    firstGroup = await ethers.getContractAt(
       creatorGroupABI,
       await Factory.getCreatorGroupAddress(0)
     );
@@ -99,5 +100,42 @@ describe("Create New Collection", async function () {
   });
 });
 describe("test mint() function", async function () {
-    
+     it("Mint NFT -> pass", async function(){
+        await firstGroup.connect(user1).mint("ipfs://firstToken.png") ;
+        expect(await collection.balanceOf(firstGroupAddress)).to.equal(1);
+        expect(await collection.ownerOf(1)).to.equal(firstGroupAddress);
+        expect(await collection.tokenURI(1)).to.equal("ipfs://firstToken.png");
+     })
+     it("Mint NFT -> fail with non director", async function(){
+        await expect(firstGroup.connect(user2).mint("ipfs://firstToken.png")).to.be.revertedWith("Only director can call this function");
+     })
+
+})
+
+describe("test tokenURI() function", async function(){
+  it("tokenURI() -> pass", async function(){
+    expect(await collection.tokenURI(1)).to.equal("ipfs://firstToken.png");
+  })
+  it("tokenURI() -> fail", async function(){
+     expect(await collection.tokenURI(2)).to.equal("");
+  })
+})
+
+describe("test getLoyaltyFee() function", async function () {
+  it("getLoyaltyFee() -> pass", async function(){
+    expect(await collection.getLoyaltyFee(1)).to.equal(0);
+  })
+
+})
+
+describe("test burn() function", async function () {
+  it("Burn NFT -> fail with non director", async function(){
+    await expect(collection.connect(user2).burn(1)).to.be.revertedWith("only owner can burn");
+  })
+  it("Burn NFT -> pass", async function(){
+        await firstGroup.connect(user1).executeBurnTransaction(0) ;
+        expect(await collection.balanceOf(firstGroupAddress)).to.equal(0);
+        const CUSTOM_ERROR = "ERC721NonexistentToken";
+        await expect(collection.ownerOf(1)).to.be.revertedWithCustomError(collection, CUSTOM_ERROR);
+    })
 })

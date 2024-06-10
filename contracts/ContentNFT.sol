@@ -6,6 +6,8 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ICreatorGroup} from "./interfaces/ICreatorGroup.sol";
 import {IFactory} from "./interfaces/IFactory.sol";
 
+import "hardhat/console.sol";
+
 contract ContentNFT is ERC721Upgradeable {
     // Struct to store transfer details
     struct TransferHistory {
