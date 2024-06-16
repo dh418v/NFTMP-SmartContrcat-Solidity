@@ -37,6 +37,8 @@ contract Factory {
         require(msg.sender == owner, "Only owner can call this function");
         _;
     }
+
+
     /// @notice Constructor to initialize contract variables
     /// @param _implementGroup Address of the implementation contract for creating groups
     /// @param _implementContent Context of the implementation contract for NFT Collection
@@ -111,6 +113,7 @@ contract Factory {
 
     /// @notice Function for the development team to withdraw funds
     /// @dev Only the development team can call this function
+    
     function withdraw() external {
         require(msg.sender == developmentTeam, "Invalid withdrawer");
         uint256 amount = IERC20(USDC).balanceOf(address(this));
