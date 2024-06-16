@@ -155,12 +155,6 @@ contract Marketplace is ReentrancyGuard {
         percentForLoyaltyFee = 5;
     }
 
-
-    /// @notice Function to list an NFT to an English auction
-    /// @param _nftContractAddress Address of the NFT contract
-    /// @param _nftId TokenId of the NFT contract
-    /// @param _initialPrice Initial price of the NFT
-    /// @param _salePeriod Sale period of the NFT
     function getBalanceOfUser(address to) public view returns (uint256) {
         return balanceOfUser[to];
     }
@@ -494,10 +488,6 @@ contract Marketplace is ReentrancyGuard {
         balanceOfDevelopmentTeam += _price - value;
         ICreatorGroup(_seller).alarmSoldOut(_nftContractAddress, _nftId, value);
     }
-
-    /// @notice Function for a user to buy in a Dutch auction
-    /// @param _id The list id of the Dutch Auction
-    /// @param _sendingValue Bid amount
     function buyDutchAuction(uint256 _id, uint256 _sendingValue) external {
         require(
             dutchAuctions.length > _id && _id >= 0,
