@@ -35,7 +35,13 @@ contract Marketplace is ReentrancyGuard {
         address currentWinner;
         uint256 currentPrice;
     }
-    // Struct to handle Dutch auction details
+
+    mapping(uint256 => mapping(address => uint256))
+        public englishAuction_balancesForWithdraw; // Mapping to store balances available for withdrawal in English auctions
+
+    englishAuction[] public englishAuctions; // Array to store instances of English auction contracts
+    mapping(uint256 => uint256) public englishAuction_listedNumber; // Mapping to track the number of items listed in each English auction
+
     struct dutchAuction {
         uint256 initialPrice;
         uint256 reducingRate;
@@ -149,11 +155,93 @@ contract Marketplace is ReentrancyGuard {
         percentForLoyaltyFee = 5;
     }
 
+
     /// @notice Function to list an NFT to an English auction
     /// @param _nftContractAddress Address of the NFT contract
     /// @param _nftId TokenId of the NFT contract
     /// @param _initialPrice Initial price of the NFT
     /// @param _salePeriod Sale period of the NFT
+    function getBalanceOfUser(address to) public view returns (uint256) {
+        return balanceOfUser[to];
+    }
+
+    function addBalanceOfUser(
+        address[] memory _members,
+        uint256[] memory _values,
+        address contractAddress,
+        uint256 nftId
+    ) public {
+        bool flag = false;
+        for (uint256 i = 0; i < listedNFTs.length; i++) {
+            if (
+                listedNFTs[i].nftContractAddress == contractAddress &&
+                listedNFTs[i].nftId == nftId &&
+                listedNFTs[i].currentOwner == msg.sender &&
+                listedNFTs[i].endState == true
+            ) {
+                flag = true;
+                break;
+            }
+        }
+        require(flag == true, "Invalid address for adding revenue");
+        for (uint256 i = 0; i < _members.length; i++) {
+            balanceOfUser[_members[i]] += _values[i];
+        }
+    }
+
+    // Function to set the development team address (only callable by the owner)
+    function setDevelopmentTeam(address _developmentTeam) public onlyOwner {
+        developmentTeam = _developmentTeam;
+        emit developmentTeamSet(developmentTeam);
+    }
+
+    // Function to set the percentage for seller (only callable by the owner)
+    function setPercentForSeller(uint256 _percentForSeller) public onlyOwner {
+        percentForSeller = _percentForSeller;
+        emit percentForSellerSet(percentForSeller);
+    }
+
+    function setPercentForLoyaltyFee(
+        uint256 _percentForLoyaltyFee
+    ) public onlyOwner {
+        percentForLoyaltyFee = _percentForLoyaltyFee;
+        emit percentForLoyaltyFeeSet(percentForLoyaltyFee);
+    }
+
+    // Function to withdraw funds from the contract (only callable by the development team)
+    function withdraw() public {
+        require(msg.sender == developmentTeam, "Invalid withdrawer");
+        uint amount = balanceOfDevelopmentTeam;
+        balanceOfDevelopmentTeam = 0;
+        IERC20(USDC).approve(address(this), amount);
+        IERC20(USDC).transferFrom(address(this), msg.sender, amount);
+        emit Withdrawal(msg.sender, amount);
+    }
+
+    // Function to withdraw funds from a seller's balance
+    function withdrawFromSeller() public {
+        require(balanceOfSeller[msg.sender] > 0, "Invalid withdrawer");
+        uint amount = balanceOfSeller[msg.sender];
+        balanceOfSeller[msg.sender] = 0;
+        IERC20(USDC).approve(address(this), amount);
+        IERC20(USDC).transferFrom(address(this), msg.sender, amount);
+        emit Withdrawal(msg.sender, amount);
+    }
+
+    // Function to record revenue from a sale
+    function recordRevenue(
+        address seller,
+        uint256 price,
+        address contractAddress,
+        uint256 nftId
+    ) private {
+        uint256 value = (price * percentForSeller) / 100;
+        balanceOfSeller[seller] += value;
+        balanceOfDevelopmentTeam += price - value;
+        ICreatorGroup(seller).alarmSoldOut(contractAddress, nftId, value);
+    }
+
+    // Function to list an NFT to an English auction
     function listToEnglishAuction(
         address _nftContractAddress,
         uint256 _nftId,
