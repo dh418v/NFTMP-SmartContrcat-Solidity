@@ -52,7 +52,6 @@ contract Marketplace {
     englishAuction[] public englishAuctions; // Array to store instances of English auction contracts
     mapping(uint256 => uint256) public englishAuction_listedNumber; // Mapping to track the number of items listed in each English auction
 
-    // Struct to handle Dutch auction details
     struct dutchAuction {
         uint256 initialPrice;
         uint256 reducingRate;
@@ -155,7 +154,6 @@ contract Marketplace {
         return balanceOfUser[to];
     }
 
-    // Function to add balance to multiple users
     function addBalanceOfUser(
         address[] memory _members,
         uint256[] memory _values,
